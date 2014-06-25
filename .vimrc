@@ -20,6 +20,7 @@ set expandtab
 
 autocmd Filetype css setlocal ts=2 sts=2 sw=2 expandtab
 autocmd Filetype html setlocal ts=2 sts=2 sw=2 expandtab
+autocmd Filetype htmldjango setlocal ts=2 sts=2 sw=2 expandtab
 autocmd Filetype java setlocal ts=4 sts=4 sw=4 noexpandtab
 autocmd Filetype javascript setlocal ts=2 sts=2 sw=2 expandtab
 autocmd Filetype xml setlocal ts=2 sts=2 sw=2 expandtab
