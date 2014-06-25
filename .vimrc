@@ -10,8 +10,8 @@ set hlsearch
 set ignorecase
 set smartcase
 
-set autoindent
 filetype plugin indent on
+set autoindent
 
 set tabstop=4
 set softtabstop=4
