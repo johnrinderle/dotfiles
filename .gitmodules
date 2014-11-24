@@ -47,8 +47,8 @@
 	path = bundle/ag
 	url = https://github.com/rking/ag.vim
 [submodule "bundle/vim-airline"]
-	path = bundle/vim-airline
+	path = bundle/airline
 	url = https://github.com/bling/vim-airline
 [submodule "bundle/vim-bufferline"]
-	path = bundle/vim-bufferline
+	path = disabled/bufferline
 	url = https://github.com/bling/vim-bufferline
