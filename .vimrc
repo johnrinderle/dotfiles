@@ -36,7 +36,7 @@ let NERDTreeShowHidden=1
 
 " http://pep8.readthedocs.org/en/latest/intro.html
 " E501: line too long
-let g:syntastic_python_flake8_args='--ignore=E501'
+let g:syntastic_python_flake8_args='--ignore=E501,E231'
 
 " http://pylint-messages.wikidot.com/all-codes
 " C0301: line too long
