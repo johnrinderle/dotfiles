@@ -43,4 +43,4 @@ let g:syntastic_python_flake8_args='--ignore=E501'
 let g:syntastic_python_pylint_args='--disable=C0301'
 
 " use ag for locating files
-let g:ctrlp_user_command = 'ag %s -l --nocolor --hidden --ignore .git -g ""''
+let g:ctrlp_user_command = 'ag %s -l --nocolor --hidden --ignore .git -g ""'
