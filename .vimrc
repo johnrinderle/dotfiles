@@ -36,11 +36,11 @@ let NERDTreeShowHidden=1
 
 " http://pep8.readthedocs.org/en/latest/intro.html
 " E501: line too long
-let g:syntastic_python_flake8_args='--ignore=E501,E231'
+let g:syntastic_python_flake8_args='--ignore=E501'
 
 " http://pylint-messages.wikidot.com/all-codes
 " C0301: line too long
 let g:syntastic_python_pylint_args='--disable=C0301'
 
-set wildignore+='*.pyc'
-let g:ctrlp_custom_ignore = '\.pyc$'
+" use ag for locating files
+let g:ctrlp_user_command = 'ag %s -l --nocolor --hidden --ignore .git -g ""''
