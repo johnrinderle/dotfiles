@@ -28,19 +28,25 @@ autocmd Filetype xml setlocal ts=2 sts=2 sw=2 expandtab
 nmap <F8> :TagbarToggle<CR>
 
 let mapleader=","
-nmap <leader>hs :set hlsearch! hlsearch?
+nmap <leader>hs :set hlsearch! hlsearch?<CR>
 nmap <leader>rt :retab<CR> :%s/\s\+$//e<CR>
 nmap <leader>rf :retab<CR> :%s/\s\+$//e<CR> mzgg=G`z<CR>
+nmap <leader>\ :Ag<Space>
+nmap <leader>tb :TagbarToggle<CR>
 
 let NERDTreeShowHidden=1
 
 " http://pep8.readthedocs.org/en/latest/intro.html
-" E501: line too long
-let g:syntastic_python_flake8_args='--ignore=E501'
+" E501: line too long (> 79 characters)
+" E231: missing whitespace after ','
+let g:syntastic_python_flake8_args='--ignore=E501,E231'
 
 " http://pylint-messages.wikidot.com/all-codes
 " C0301: line too long
 let g:syntastic_python_pylint_args='--disable=C0301'
+
+" check syntax on open
+let g:syntastic_check_on_open = 1
 
 " use ag for locating files
 let g:ctrlp_user_command = 'ag %s -l --nocolor --hidden --ignore .git -g ""'
