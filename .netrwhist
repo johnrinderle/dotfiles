@@ -1,8 +1,9 @@
 let g:netrw_dirhistmax  =10
-let g:netrw_dirhist_cnt =6
+let g:netrw_dirhist_cnt =7
 let g:netrw_dirhist_1='/Users/john/Projects/platform/services/trapeze'
 let g:netrw_dirhist_2='/Users/john/old'
 let g:netrw_dirhist_3='/Users/john/Projects/platform/services/trapeze'
 let g:netrw_dirhist_4='/Users/john/Projects/courses/it_fundamentals_demo/organizations'
 let g:netrw_dirhist_5='/Users/john/Projects/platform'
 let g:netrw_dirhist_6='/Users/john/Projects/platform/services'
+let g:netrw_dirhist_7='/Users/john/Projects/blackboard_9_1_plugins/acr-gradebook-sync/src/com/acrobatiq/lms/blackboard/gradebook/model'
