@@ -36,6 +36,8 @@ nmap <leader>rf :retab<CR> :%s/\s\+$//e<CR> mzgg=G`z<CR>
 nmap <leader>\ :Ag<Space>
 nmap <leader>tb :TagbarToggle<CR>
 
+let g:EditorConfig_exclude_patterns = ['fugitive://.*', 'scp://.*']
+
 let NERDTreeShowHidden=1
 
 " http://pep8.readthedocs.org/en/latest/intro.html
