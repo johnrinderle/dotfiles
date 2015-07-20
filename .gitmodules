@@ -52,3 +52,6 @@
 [submodule "bundle/vim-bufferline"]
 	path = disabled/bufferline
 	url = https://github.com/bling/vim-bufferline
+[submodule "bundle/editorconfig-vim"]
+	path = bundle/editorconfig-vim
+	url = https://github.com/editorconfig/editorconfig-vim.git
