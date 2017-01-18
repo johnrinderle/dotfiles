@@ -40,6 +40,10 @@ let g:EditorConfig_exclude_patterns = ['fugitive://.*', 'scp://.*']
 
 let NERDTreeShowHidden=1
 
+"let g:syntastic_python_checkers = ['flake8', 'pyflakes', 'python', 'pylint']
+let g:syntastic_python_checkers = ['flake8', 'python']
+let g:syntastic_check_on_wq = 0
+
 " http://pep8.readthedocs.org/en/latest/intro.html
 " E501: line too long (> 79 characters)
 " E231: missing whitespace after ','
