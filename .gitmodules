@@ -61,3 +61,6 @@
 [submodule "bundle/vim-airline-themes"]
 	path = bundle/vim-airline-themes
 	url = https://github.com/vim-airline/vim-airline-themes
+[submodule "bundle/vim-xpath"]
+	path = bundle/vim-xpath
+	url = https://github.com/actionshrimp/vim-xpath
