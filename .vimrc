@@ -35,6 +35,8 @@ nmap <leader>rt :retab<CR> :%s/\s\+$//e<CR>
 nmap <leader>rf :retab<CR> :%s/\s\+$//e<CR> mzgg=G`z<CR>
 nmap <leader>\ :Ag<Space>
 nmap <leader>tb :TagbarToggle<CR>
+nmap <leader>lc :lclose<CR>
+nmap <leader>lo :lopen<CR>
 
 let g:EditorConfig_exclude_patterns = ['fugitive://.*', 'scp://.*']
 
