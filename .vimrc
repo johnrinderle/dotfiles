@@ -33,7 +33,7 @@ let mapleader=","
 nmap <leader>hs :set hlsearch! hlsearch?<CR>
 nmap <leader>rt :retab<CR> :%s/\s\+$//e<CR>
 nmap <leader>rf :retab<CR> :%s/\s\+$//e<CR> mzgg=G`z<CR>
-nmap <leader>\ :Ag<Space>
+nmap <leader>\ :Ack<Space>
 nmap <leader>tb :TagbarToggle<CR>
 nmap <leader>lc :lclose<CR>
 nmap <leader>lo :lopen<CR>
@@ -42,10 +42,11 @@ let g:EditorConfig_exclude_patterns = ['fugitive://.*', 'scp://.*']
 
 let NERDTreeShowHidden=1
 
-"let g:syntastic_python_checkers = ['flake8', 'pyflakes', 'python', 'pylint']
+" syntastic
+" let g:syntastic_python_checkers = ['flake8', 'pyflakes', 'python', 'pylint']
 let g:syntastic_python_checkers = ['flake8', 'python']
 let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_auto_loc_list = 1
+let g:syntastic_auto_loc_list = 0
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
 
@@ -58,8 +59,8 @@ let g:syntastic_python_flake8_args='--ignore=E501,E231'
 " C0301: line too long
 let g:syntastic_python_pylint_args='--disable=C0301'
 
-" check syntax on open
-let g:syntastic_check_on_open = 1
-
 " use ag for locating files
 let g:ctrlp_user_command = 'ag %s -l --nocolor --hidden --ignore .git -g ""'
+
+" use ag for searching
+let g:ackprg = 'ag --vimgrep --silent'
