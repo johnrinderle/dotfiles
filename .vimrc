@@ -27,8 +27,6 @@ autocmd Filetype java setlocal ts=4 sts=4 sw=4 noexpandtab
 
 set clipboard=unnamed
 
-nmap <F8> :TagbarToggle<CR>
-
 let mapleader=","
 nmap <leader>hs :set hlsearch! hlsearch?<CR>
 nmap <leader>rt :retab<CR> :%s/\s\+$//e<CR>
@@ -63,4 +61,4 @@ let g:syntastic_python_pylint_args='--disable=C0301'
 let g:ctrlp_user_command = 'ag %s -l --nocolor --hidden --ignore .git -g ""'
 
 " use ag for searching
-let g:ackprg = 'ag --vimgrep --silent'
+let g:ackprg = 'ag --nogroup --nocolor --column --silent'
