@@ -23,10 +23,10 @@
 	path = bundle/nerdtree
 	url = https://github.com/scrooloose/nerdtree.git
 [submodule "bundle/syntastic"]
-	path = bundle/syntastic
+	path = disabled/syntastic
 	url = https://github.com/scrooloose/syntastic.git
 [submodule "bundle/unimpaired"]
-	path = disabled/unimpaired
+	path = bundle/unimpaired
 	url = https://github.com/tpope/vim-unimpaired
 [submodule "bundle/ctrlp"]
 	path = bundle/ctrlp
@@ -56,7 +56,7 @@
 	path = bundle/editorconfig-vim
 	url = https://github.com/editorconfig/editorconfig-vim.git
 [submodule "bundle/ZoomWin"]
-	path = bundle/ZoomWin
+	path = disabled/ZoomWin
 	url = https://github.com/vim-scripts/ZoomWin
 [submodule "bundle/vim-airline-themes"]
 	path = bundle/vim-airline-themes
@@ -67,3 +67,18 @@
 [submodule "bundle/ack.vim"]
 	path = bundle/ack.vim
 	url = https://github.com/mileszs/ack.vim
+[submodule "bundle/vim-bufkill"]
+	path = bundle/vim-bufkill
+	url = https://github.com/qpkorr/vim-bufkill
+[submodule "bundle/vim-rhubarb"]
+	path = bundle/vim-rhubarb
+	url = https://github.com/tpope/vim-rhubarb
+[submodule "bundle/vim-gitgutter"]
+	path = bundle/vim-gitgutter
+	url = https://github.com/airblade/vim-gitgutter
+[submodule "bundle/ale"]
+	path = bundle/ale
+	url = https://github.com/w0rp/ale
+[submodule "bundle/fzf.vim"]
+	path = disabled/fzf.vim
+	url = https://github.com/junegunn/fzf.vim

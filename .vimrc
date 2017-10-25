@@ -1,3 +1,4 @@
+set rtp+=/usr/local/opt/fzf
 execute pathogen#infect()
 
 set background=dark
