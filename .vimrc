@@ -32,7 +32,7 @@ let mapleader=","
 nmap <leader>hs :set hlsearch! hlsearch?<CR>
 nmap <leader>rt :retab<CR> :%s/\s\+$//e<CR>
 nmap <leader>rf :retab<CR> :%s/\s\+$//e<CR> mzgg=G`z<CR>
-nmap <leader>\ :Ack<Space>
+nmap <leader>\ :Ack!<Space>
 nmap <leader>tb :TagbarToggle<CR>
 nmap <leader>lc :lclose<CR>
 nmap <leader>lo :lopen<CR>

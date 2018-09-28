@@ -82,3 +82,6 @@
 [submodule "bundle/fzf.vim"]
 	path = disabled/fzf.vim
 	url = https://github.com/junegunn/fzf.vim
+[submodule "bundle/vim-zoomwin"]
+	path = bundle/vim-zoomwin
+	url = https://github.com/regedarek/zoomwin
