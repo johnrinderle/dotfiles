@@ -44,6 +44,7 @@ let g:ctrlp_user_command = 'ag %s -l --nocolor --hidden --ignore .git -g ""'
 let g:ackprg = 'ag --nogroup --nocolor --column --silent'
 
 call plug#begin()
+Plug 'joshdick/onedark.vim'
 Plug 'airblade/vim-gitgutter'
 Plug 'altercation/vim-colors-solarized'
 Plug 'editorconfig/editorconfig-vim'
