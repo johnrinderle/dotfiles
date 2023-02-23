@@ -1,9 +1,3 @@
-set rtp+=/usr/local/opt/fzf
-execute pathogen#infect()
-
-set background=dark
-colorscheme solarized
-
 set nu
 set list
 set showmatch
@@ -13,7 +7,6 @@ set smartcase
 
 filetype plugin indent on
 set autoindent
-
 set tabstop=4
 set softtabstop=4
 set shiftwidth=4
@@ -27,6 +20,7 @@ autocmd Filetype xml setlocal ts=2 sts=2 sw=2 expandtab
 autocmd Filetype java setlocal ts=4 sts=4 sw=4 noexpandtab
 
 set clipboard=unnamed
+set mouse=
 
 let mapleader=","
 nmap <leader>hs :set hlsearch! hlsearch?<CR>
@@ -36,30 +30,42 @@ nmap <leader>\ :Ack!<Space>
 nmap <leader>tb :TagbarToggle<CR>
 nmap <leader>lc :lclose<CR>
 nmap <leader>lo :lopen<CR>
+nmap <leader>ts :tab split<CR>
+nmap <leader>tc :tab close<CR>
 
-let g:EditorConfig_exclude_patterns = ['fugitive://.*', 'scp://.*']
-
-let NERDTreeShowHidden=1
-
-" syntastic
-" let g:syntastic_python_checkers = ['flake8', 'pyflakes', 'python', 'pylint']
-let g:syntastic_python_checkers = ['flake8', 'python']
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_auto_loc_list = 0
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
-
-" http://pep8.readthedocs.org/en/latest/intro.html
-" E501: line too long (> 79 characters)
-" E231: missing whitespace after ','
-let g:syntastic_python_flake8_args='--ignore=E501,E231'
-
-" http://pylint-messages.wikidot.com/all-codes
-" C0301: line too long
-let g:syntastic_python_pylint_args='--disable=C0301'
+" ale
+let g:ale_python_flake8_options='--ignore=E501,E231'
+let g:ale_python_pylint_options='--disable=C0301 --extension-pkg-whitelist=pydantic'
 
 " use ag for locating files
 let g:ctrlp_user_command = 'ag %s -l --nocolor --hidden --ignore .git -g ""'
 
 " use ag for searching
 let g:ackprg = 'ag --nogroup --nocolor --column --silent'
+
+call plug#begin()
+Plug 'airblade/vim-gitgutter'
+Plug 'altercation/vim-colors-solarized'
+Plug 'editorconfig/editorconfig-vim'
+Plug 'joshdick/onedark.vim'
+Plug 'kien/ctrlp.vim'
+Plug 'mileszs/ack.vim'
+Plug 'qpkorr/vim-bufkill'
+Plug 'Raimondi/delimitMate'
+"Plug 'regedarek/zoomwin'
+Plug 'sheerun/vim-polyglot'
+Plug 'tomasr/molokai'
+Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-rhubarb'
+Plug 'tpope/vim-sensible'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'Vimjas/vim-python-pep8-indent'
+Plug 'w0rp/ale'
+Plug 'pangloss/vim-javascript'
+Plug 'chr4/nginx.vim'
+Plug 'mtth/scratch.vim'
+call plug#end()
+
+syntax on
+colorscheme onedark
