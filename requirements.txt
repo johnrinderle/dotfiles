@@ -32,10 +32,11 @@ pymongo
 pynvim
 pytest
 python-dateutil
-pytz
+python-lsp-server
 pyyaml
 requests
 sslyze
+pytz
 types-requests
 unidecode
 visidata
