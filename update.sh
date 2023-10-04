@@ -1,5 +1,7 @@
 #!/bin/bash
 set -e -x
+
+export HOMEBREW_NO_ANALYTICS=1
 brew bundle --file ~/Brewfile
 brew upgrade
 brew cleanup -s
