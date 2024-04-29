@@ -30,6 +30,7 @@ pylama
 pylint
 pymongo
 pynvim
+pyopenssl
 pytest
 python-dateutil
 python-lsp-server
