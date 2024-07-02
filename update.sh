@@ -2,6 +2,7 @@
 set -e -x
 
 export HOMEBREW_NO_ANALYTICS=1
+export HOMEBREW_NO_ENV_HINTS=1
 brew bundle --file ~/Brewfile
 brew upgrade
 brew cleanup -s
