@@ -36,6 +36,7 @@ python-dateutil
 python-lsp-server
 pyyaml
 requests
+ruff
 sslyze
 pytz
 types-requests
@@ -45,3 +46,4 @@ websocket-client
 websockets
 xlsxwriter
 xmltodict
+uv
