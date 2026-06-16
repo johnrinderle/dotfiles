@@ -3,8 +3,8 @@ set -e -x
 
 export HOMEBREW_NO_ANALYTICS=1
 export HOMEBREW_NO_ENV_HINTS=1
-brew bundle --file ~/Brewfile
-brew upgrade
+brew bundle install --file ~/Brewfile
+brew upgrade -y
 brew cleanup -s
 
 pip3 install -U pip setuptools wheel
