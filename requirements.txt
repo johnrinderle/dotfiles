@@ -41,7 +41,6 @@ sslyze
 pytz
 types-requests
 unidecode
-visidata
 websocket-client
 websockets
 xlsxwriter
