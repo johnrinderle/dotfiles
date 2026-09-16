@@ -1,6 +1,7 @@
 #!/bin/bash
 
-brew install gh coreutils
+brew update
+brew install coreutils gh pyenv
 
 DOTFILES_PATH=`realpath $0 | xargs dirname`
 pushd ~
@@ -14,15 +15,12 @@ popd
 curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.7/install.sh | bash
 
-nvm install 16
 nvm install --lts
-nvm use --lts
+nvm alias default "lts/*"
 
 ./update.sh
 
-pyenv install 3.9
-pyenv install 3.11
-pyenv install 3.12
-pyenv global 3.11
+pyenv install 3.14
+pyenv global 3.14

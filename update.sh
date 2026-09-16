@@ -7,8 +7,9 @@ brew bundle install --file ~/Brewfile
 brew upgrade -y
 brew cleanup -s
 
-pip3 install -U pip setuptools wheel
-pip3 install -U -r ~/requirements.txt
+pip3 install -U pip setuptools wheel uv
+uv pip install --system -r requirements.txt
+uv tool upgrade --all
 
 npm i -g --force npm
 npm update -g

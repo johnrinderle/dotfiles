@@ -1,7 +1,6 @@
 autopep8
 bandit
 beautifulsoup4
-black
 flake8
 github3.py
 ipdb
@@ -36,7 +35,6 @@ python-dateutil
 python-lsp-server
 pyyaml
 requests
-ruff
 sslyze
 pytz
 types-requests
@@ -45,4 +43,3 @@ websocket-client
 websockets
 xlsxwriter
 xmltodict
-uv
