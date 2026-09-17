@@ -106,7 +106,7 @@ audit_uv_tools() {
     # executables it provides appears in python-tools.sh. The previous version
     # compared against the installed executables instead of the recorded ones,
     # which always matched and so never reported anything.
-    local pkg exe
+    local pkg
     while read -r pkg; do
         [ -n "$pkg" ] || continue
         if grep -qxF "$pkg" "$WORK/want"; then

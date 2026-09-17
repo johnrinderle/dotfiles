@@ -72,6 +72,7 @@ dry_run() { [ "$DRY_RUN" = 1 ]; }
 
 # The files this repo owns in $HOME, one "<repo path> <name in $HOME>" per
 # line. Shared by install.sh (creates them) and audit.sh (verifies them).
+# shellcheck disable=SC2034  # used by the scripts that source this file
 SYMLINKS='
 .vimrc           .vimrc
 .zprofile        .zprofile
