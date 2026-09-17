@@ -75,6 +75,7 @@ dry_run() { [ "$DRY_RUN" = 1 ]; }
 SYMLINKS='
 .vimrc           .vimrc
 .zprofile        .zprofile
+.zshrc           .zshrc
 Brewfile         Brewfile
 requirements.txt requirements.txt
 python-tools.sh  python-tools.sh
