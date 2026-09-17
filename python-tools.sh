@@ -81,6 +81,19 @@ poetry      poetry
 install_tool() {
     local cmd="$1"
     shift
+    local pkg="$1"
+
+    # A tool whose interpreter has been deleted -- because the Python it was
+    # built on was uninstalled -- keeps its directory and its shim on PATH but
+    # dies with "bad interpreter". `uv tool list` omits it, so the check below
+    # would treat it as missing and a plain install may not rebuild it. Detect
+    # it directly and force.
+    if [ -n "${pkg:-}" ] && [ -n "$UV_TOOL_DIR" ] \
+        && [ -d "$UV_TOOL_DIR/$pkg" ] && [ ! -x "$UV_TOOL_DIR/$pkg/bin/python" ]; then
+        warn "$cmd is installed but its interpreter is gone; rebuilding"
+        run "$UV" tool install --force "$@"
+        return 0
+    fi
 
     # uv tool list is the authoritative check: a command can be on PATH from
     # brew or a stale venv without being a uv-managed tool.
@@ -124,6 +137,7 @@ main() {
     # uv tool list prints a "name vX.Y" line per tool followed by "- <exe>"
     # lines for each executable it provides.
     UV_TOOLS="$("$UV" tool list 2>/dev/null | sed -n 's/^- //p' || true)"
+    UV_TOOL_DIR="$("$UV" tool dir 2>/dev/null || true)"
 
     log "Python tools (uv tool)"
     while read -r cmd args; do

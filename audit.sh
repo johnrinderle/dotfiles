@@ -120,6 +120,21 @@ audit_uv_tools() {
         extra=1
     done < "$WORK/have_pkgs"
     [ "$extra" = 0 ] && skip "no unrecorded tools"
+
+    # Tools whose interpreter has been deleted keep a directory and a shim on
+    # PATH but die with "bad interpreter". `uv tool list` omits them entirely,
+    # so without this they are invisible -- neither installed nor unrecorded.
+    local dir broken=0 name
+    dir="$("$UV" tool dir 2>/dev/null || true)"
+    if [ -n "$dir" ] && [ -d "$dir" ]; then
+        for name in "$dir"/*/; do
+            [ -d "$name" ] || continue
+            [ -x "$name/bin/python" ] && continue
+            note "  broken (interpreter gone): $(basename "$name")"
+            broken=1
+        done
+    fi
+    [ "$broken" = 0 ] && skip "no broken tool environments"
     return 0
 }
 

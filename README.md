@@ -148,7 +148,7 @@ Judgement calls, not done:
 | Package | Question |
 | --- | --- |
 | `mysql`, `mysql-client` | Only `mysql-client@8.0` is on `PATH`. Drop the other two unless you run a local MySQL server. |
-| `python@3.11`, `python@3.12` | Homebrew Pythons, redundant now that uv manages Python. Nothing depends on either (142 MB). |
+| `python@3.11`, `python@3.12` | Homebrew Pythons, redundant once uv manages Python (142 MB). **Run `install.sh` first**: uv tool environments can be built against these, and removing the interpreter under a tool leaves it on `PATH` but broken. `audit.sh` reports such tools. |
 | `docutils` | reStructuredText tooling; nothing depends on it, and pandoc is gone. |
 | `mactop` | Apple Silicon system monitor — the same category as the `htop` that was removed. |
 | `sslyze` | Installed as a uv tool but unrecorded, and overlaps `sslscan`. Add it to `python-tools.sh` or remove it. |
