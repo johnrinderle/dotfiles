@@ -39,19 +39,18 @@ brew "jless"
 brew "jq"
 brew "kubernetes-cli"
 brew "lua"
+brew "mactop"  # Apple Silicon system monitor
 brew "luajit"
 brew "micro"
 brew "miller"
 brew "mongocli"
 brew "mongodb/brew/mongodb-database-tools"
 brew "mycli"
-# Three MySQL clients are installed and only @8.0 is on PATH (it supplies
-# mysql_config). "mysql" is the server, registered but not running; the
-# unversioned "mysql-client" is keg-only and shadowed. Drop the first two
-# unless you run a local server -- see README.
-brew "mysql-client@8.0"
-brew "mysql-client"
-brew "mysql"
+# MySQL client only, pinned to 8.4 -- no server. The client supplies
+# mysqldump, mysqladmin, mysqlcheck, mysqlimport, mysqlshow, mysqlbinlog and
+# mysql_config, so nothing here needs the server package. Keg-only because it
+# is a versioned formula, so .zprofile puts its bin on PATH explicitly.
+brew "mysql-client@8.4"
 brew "nano"
 brew "ncurses"
 brew "neovim"

@@ -1,3 +1,7 @@
+# Login-shell environment: PATH and exported variables, read once per login.
+# Aliases, completions and anything else that only matters at a prompt live in
+# .zshrc, which every interactive shell reads.
+
 # The following lines were added by Docker Desktop to add commands to your PATH.
 export PATH="$PATH:$HOME/.docker/bin"
 # End of Docker Desktop section.
@@ -16,69 +20,33 @@ unset _brew
 # ~/.local/bin, so this needs to come before Homebrew's Python.
 export PATH="$HOME/.local/bin:$PATH"
 
-# The scratch environment built from requirements.txt. Not on PATH, so it
-# cannot shadow the default python; reach it deliberately.
+# MySQL client, pinned to 8.4. Keg-only because it is a versioned formula, so
+# its bin has to be added by hand. Supplies mysql, mysqldump, mysqladmin and
+# mysql_config.
+if [ -n "${HOMEBREW_PREFIX:-}" ] && [ -d "$HOMEBREW_PREFIX/opt/mysql-client@8.4/bin" ]; then
+    export PATH="$HOMEBREW_PREFIX/opt/mysql-client@8.4/bin:$PATH"
+fi
+
+# The scratch Python environment built from requirements.txt. Deliberately not
+# on PATH, so it cannot shadow the default python3; the dev/ipy/devpy aliases
+# in .zshrc reach it.
 export DEV_VENV="$HOME/.venvs/dev"
-alias dev='source "$DEV_VENV/bin/activate"'
-alias ipy='"$DEV_VENV/bin/ipython"'
-alias devpy='"$DEV_VENV/bin/python"'
 
-# Node
+# Node. nvm's completion is bash-style and is loaded in .zshrc, which sets up
+# bashcompinit first.
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-# VRSE
-# Added by VRSE. Guarded so a machine without the checkout does not error
-# on every new shell.
+# Added by VRSE. Guarded so a machine without the checkout does not error on
+# every new shell.
 VRSE_SOURCEME="$HOME/src/github.com/vitalsource/vrse/SOURCEME"
 [ -f "$VRSE_SOURCEME" ] && source "$VRSE_SOURCEME"
 
-# Interactive operation
-alias cp='cp -i'
-alias mv='mv -i'
-alias rm='rm -i'
-
-# Human readable output
-alias df='df -h'
-alias du='du -h'
-
-# Show matches in color
-alias grep='grep --color'
-
-# Defaults for directory listings
+# Colourised output from ls and friends
 export CLICOLOR=1
-alias ls='ls -ahF'
-alias dir='ls -l'
-alias ll='dir'
 
 # Default editor is vim
 export EDITOR=$(which vim)
-
-# Aliases for working with git
-# git-status: current status of the working copy
-alias gs='git status'
-# git-name-status: diff, name and status only, ignore whitespace
-alias gns='git diff -w --name-status'
-# git-merge: merge, force a merge commit, no auto-commit
-alias gm='git merge --no-ff --no-commit'
-# git-merge-abort: abort an uncommitted merge
-alias gma='git merge --abort'
-# git-diff: diff cached changes, ignore whitespace
-alias gd='git diff -w'
-# git-diff-cached: diff cached changes, ignore whitespace
-alias gdc='git diff --cached -w'
-# git-commit-push: commit and push cached changes
-alias gcp='git commit && git push'
-# git-commit-quick: commit with no message and push
-alias gcq='git commit --no-edit && git push'
-# git-rev-version: short commit hash for HEAD revision
-alias grv='git rev-parse --short HEAD'
-# git-pull-all: pull for all subdirectories containing a git repo
-alias gpa='find . -type d -maxdepth 1 -mindepth 1 | while read i ; do pushd "$i" ; if [[ -e .git ]] ; then git pull ; fi ; popd ; done'
-
-# Quick way out of bracketed paste mode
-alias nbp="printf '\e[?2004l'"
 
 # Other configuration
 export CLOUDSDK_PYTHON_SITEPACKAGES=1

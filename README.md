@@ -99,10 +99,28 @@ references, rename), both driven by ALE.
 
 ### Files symlinked into `$HOME`
 
-`.vimrc`, `.zprofile`, `Brewfile`, `requirements.txt`, `python-tools.sh`,
-`update.sh`, and `nvim-init.vim` → `~/.config/nvim/init.vim`.
+`.vimrc`, `.zprofile`, `.zshrc`, `Brewfile`, `requirements.txt`,
+`python-tools.sh`, `update.sh`, and `nvim-init.vim` →
+`~/.config/nvim/init.vim`.
 
-The shell is zsh; there is no bash profile.
+The shell is zsh; there is no bash profile. The two zsh files split by when
+they are read:
+
+| File | Holds | Read |
+| --- | --- | --- |
+| `.zprofile` | `PATH`, exported environment, nvm, VRSE | Once per login shell |
+| `.zshrc` | Aliases, completions | Every interactive shell |
+
+That split matters: aliases previously lived in `.zprofile`, so any
+non-login interactive shell — `exec zsh`, a shell inside tmux — never saw
+them.
+
+Completions come from Homebrew's `share/zsh/site-functions` (already on
+`$fpath` via `brew shellenv`), plus gcloud, Docker, `uv`, and nvm. nvm's is
+bash-style, so `.zshrc` loads `bashcompinit` explicitly — it used to work only
+as an accidental side effect of the gcloud completion script. The git aliases
+get completion through `compdef`, replacing the `__git_complete` calls that
+were lost with `.bash_profile`.
 
 The list lives in `$SYMLINKS` in `lib/common.sh`, shared by `install.sh` and
 `audit.sh`.
@@ -131,11 +149,16 @@ Replaced by uv, and no longer referenced anywhere:
 brew uninstall pyenv asdf && rm -rf ~/.pyenv ~/.asdf
 ```
 
-Not wanted (`bash-completion` because the shell is zsh):
+MySQL: client only, pinned to 8.4. The client supplies `mysqldump`,
+`mysqladmin`, `mysqlcheck`, `mysqlimport` and `mysql_config`, so the server
+package is not needed. Nothing else depends on the three being removed.
 
 ```bash
-brew uninstall pandoc htop typst bash-completion
+brew uninstall mysql mysql-client mysql-client@8.0
 ```
+
+`mysql-client@8.4` is in the Brewfile, so the next `install.sh` or
+`update.sh` installs it.
 
 Superseded Python tools — `ruff format` replaces black:
 
@@ -149,8 +172,8 @@ Judgement calls, not done:
 | --- | --- |
 | `mysql`, `mysql-client` | Only `mysql-client@8.0` is on `PATH`. Drop the other two unless you run a local MySQL server. |
 | `python@3.11`, `python@3.12` | Homebrew Pythons, redundant once uv manages Python (142 MB). **Run `install.sh` first**: uv tool environments can be built against these, and removing the interpreter under a tool leaves it on `PATH` but broken. `audit.sh` reports such tools. |
-| `docutils` | reStructuredText tooling; nothing depends on it, and pandoc is gone. |
-| `mactop` | Apple Silicon system monitor — the same category as the `htop` that was removed. |
+
+
 | `sslyze` | Installed as a uv tool but unrecorded, and overlaps `sslscan`. Add it to `python-tools.sh` or remove it. |
 
 To fold everything currently installed into the Brewfile:

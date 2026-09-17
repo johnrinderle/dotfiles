@@ -373,14 +373,19 @@ step_vim() {
         fi
     fi
 
-    # Plugin install/update is update.sh's job; do it here too so a fresh
-    # machine ends up with a working vim.
+    # PlugInstall alone only fetches *missing* plugins, which is not enough:
+    # the tracked .vimrc turns on ALE features (ruff_format, the pylsp config)
+    # that an older checkout of ALE does not have, so a plugin left at an old
+    # revision silently breaks the configuration. Converge to current instead.
     if have vim; then
         if dry_run; then
-            dry "vim +'PlugInstall --sync' +qa"
+            dry "vim +'PlugInstall --sync' +qa  &&  vim +'PlugUpdate --sync' +qa  &&  vim +PlugClean! +qa"
         else
             info "installing vim plugins"
             vim +'PlugInstall --sync' +qa >/dev/null 2>&1 || warn "vim PlugInstall reported an error"
+            info "updating vim plugins to current"
+            vim +'PlugUpdate --sync' +qa >/dev/null 2>&1 || warn "vim PlugUpdate reported an error"
+            vim +'PlugClean!' +qa >/dev/null 2>&1 || warn "vim PlugClean reported an error"
         fi
     else
         skip "vim not on PATH yet; plugins will install on the next update.sh"
