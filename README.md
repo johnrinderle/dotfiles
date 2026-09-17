@@ -100,7 +100,7 @@ references, rename), both driven by ALE.
 ### Files symlinked into `$HOME`
 
 `.vimrc`, `.zprofile`, `.zshrc`, `Brewfile`, `requirements.txt`,
-`python-tools.sh`, `update.sh`, and `nvim-init.vim` →
+`python-tools.sh`, `update.sh`, `gcloud-auth-check.sh`, and `nvim-init.vim` →
 `~/.config/nvim/init.vim`.
 
 The shell is zsh; there is no bash profile. The two zsh files split by when
@@ -114,6 +114,10 @@ they are read:
 That split matters: aliases previously lived in `.zprofile`, so any
 non-login interactive shell — `exec zsh`, a shell inside tmux — never saw
 them.
+
+`gcloud-auth-check.sh` checks GCP auth once per interactive shell and offers
+to re-authenticate, throttled and suppressed in agent-spawned shells. Tune it
+with `GCLOUD_AUTH_CHECK`, `GCLOUD_AUTH_MODE` and `GCLOUD_AUTH_THROTTLE`.
 
 Completions come from Homebrew's `share/zsh/site-functions` (already on
 `$fpath` via `brew shellenv`), plus gcloud, Docker, `uv`, and nvm. nvm's is

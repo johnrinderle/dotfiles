@@ -81,6 +81,7 @@ requirements.txt requirements.txt
 python-tools.sh  python-tools.sh
 update.sh        update.sh
 nvim-init.vim    .config/nvim/init.vim
+gcloud-auth-check.sh gcloud-auth-check.sh
 '
 
 # link_file SRC DEST -- make DEST an absolute symlink to SRC.
