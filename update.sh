@@ -109,8 +109,12 @@ update_node() {
         return 0
     fi
     run nvm use default
-    run npm install -g npm@latest
-    run npm update -g
+    # --no-fund suppresses the funding advert (also set in .npmrc, which only
+    # applies once that symlink exists). npm bundles ~130 of its own
+    # dependencies, so the "changed N packages" counts these commands report
+    # are npm's internals, not globally installed tools.
+    run npm install -g --no-fund --no-audit npm@latest
+    run npm update -g --no-fund --no-audit
 }
 
 # -------------------------------------------------------------------- vim ----

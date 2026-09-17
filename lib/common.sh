@@ -81,6 +81,7 @@ Brewfile         Brewfile
 requirements.txt requirements.txt
 python-tools.sh  python-tools.sh
 update.sh        update.sh
+.npmrc           .npmrc
 nvim-init.vim    .config/nvim/init.vim
 gcloud-auth-check.sh gcloud-auth-check.sh
 '
