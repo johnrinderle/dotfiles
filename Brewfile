@@ -16,6 +16,7 @@ brew "coreutils"
 brew "curl"
 brew "difftastic"
 brew "direnv"
+brew "doggo"  # DNS client, nicer dig
 brew "dos2unix"
 brew "duckdb"
 brew "editorconfig"
@@ -67,6 +68,7 @@ brew "redis"
 brew "ripgrep"
 brew "ruby"
 brew "rust"
+brew "sentry"      # the `sentry` binary; distinct from sentry-cli
 brew "sentry-cli"
 brew "shellcheck"  # lints the scripts in this repo
 brew "sqlite"
