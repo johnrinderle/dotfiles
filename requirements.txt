@@ -1,45 +1,46 @@
-autopep8
-bandit
+# Baseline Python libraries: the things worth having on hand for a quick
+# script, a one-off bit of analysis, or an agent reaching for a library.
+#
+# Deliberately NOT a superset of what any project needs -- a project gets its
+# own virtualenv and pins its own versions. The bar for this file is "I would
+# be mildly annoyed to have to install this before writing five lines".
+#
+# Installed by install.sh / update.sh into a dedicated venv:
+#
+#     uv venv --python <version> ~/.venvs/dev
+#     uv pip install --python ~/.venvs/dev/bin/python -r requirements.txt
+#
+# Reach it with the `dev` (activate), `ipy` (IPython) and `devpy` (python)
+# aliases from .zprofile. Command-line applications belong in python-tools.sh.
+# See docs/python-packages.md.
+
+# --- HTTP and the web ---
+httpx                  # sync + async; the modern default
+requests               # still what most snippets and docs assume
 beautifulsoup4
-flake8
-github3.py
-ipdb
-ipython
-isodate
-isort
-lxml
-mypy
-mysqlclient
-nodeenv
-numpy
-openpyxl
-pastel
-pep8
-pip-review
-pipenv
-poetry
-pre-commit
-prettyconf
-pycodestyle
-pydantic
-pydocstyle
-pyflakes
-pyjwt
-pylama
-pylint
-pymongo
-pynvim
-pyopenssl
-pytest
-python-dateutil
-python-lsp-server
-pyyaml
-requests
-sslyze
-pytz
-types-requests
-unidecode
-websocket-client
+lxml                   # also the parser backend bs4 should use
 websockets
-xlsxwriter
+
+# --- Data and file formats ---
+numpy
+openpyxl               # read and write .xlsx
+pyyaml
 xmltodict
+python-dateutil        # parsing dates that fromisoformat will not take
+unidecode              # transliterate to ASCII; slugs, filenames, cleanup
+
+# --- Databases ---
+pymongo
+pymysql                # pure Python: no C toolchain, no mysql_config
+
+# --- Validation, config, auth ---
+pydantic
+python-dotenv          # read a .env without hand-rolling a parser
+pyjwt
+
+# --- Console and interactive ---
+ipython
+rich                   # tables, syntax highlighting, progress, pretty repr
+
+# --- Editor integration ---
+pynvim                 # neovim Python provider; nvim-init.vim points at this

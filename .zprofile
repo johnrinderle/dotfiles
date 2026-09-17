@@ -1,16 +1,27 @@
 # The following lines were added by Docker Desktop to add commands to your PATH.
-export PATH="$PATH:/Users/john/.docker/bin"
+export PATH="$PATH:$HOME/.docker/bin"
 # End of Docker Desktop section.
 
-eval "$(/opt/homebrew/bin/brew shellenv)"
+# Homebrew. Checks both prefixes so this works on Apple Silicon and Intel,
+# and stays quiet on a machine where Homebrew is not installed yet.
+for _brew in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+    if [ -x "$_brew" ]; then
+        eval "$("$_brew" shellenv)"
+        break
+    fi
+done
+unset _brew
 
-# Prefer homebrew packages
-export PATH="$(brew --prefix)/bin:$PATH"
+# uv installs both tool shims and the default `python`/`python3` into
+# ~/.local/bin, so this needs to come before Homebrew's Python.
+export PATH="$HOME/.local/bin:$PATH"
 
-# Python
-export PYENV_ROOT="$HOME/.pyenv"
-command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
+# The scratch environment built from requirements.txt. Not on PATH, so it
+# cannot shadow the default python; reach it deliberately.
+export DEV_VENV="$HOME/.venvs/dev"
+alias dev='source "$DEV_VENV/bin/activate"'
+alias ipy='"$DEV_VENV/bin/ipython"'
+alias devpy='"$DEV_VENV/bin/python"'
 
 # Node
 export NVM_DIR="$HOME/.nvm"
@@ -18,7 +29,10 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 # VRSE
-source "/Users/john/src/github.com/vitalsource/vrse/SOURCEME" # Added by VRSE
+# Added by VRSE. Guarded so a machine without the checkout does not error
+# on every new shell.
+VRSE_SOURCEME="$HOME/src/github.com/vitalsource/vrse/SOURCEME"
+[ -f "$VRSE_SOURCEME" ] && source "$VRSE_SOURCEME"
 
 # Interactive operation
 alias cp='cp -i'
