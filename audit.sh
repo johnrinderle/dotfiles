@@ -58,7 +58,11 @@ audit_brew() {
 
     log "Homebrew casks"
     grep -E '^cask "' "$REPO_DIR/Brewfile" | sed 's/^cask "//; s/".*//' | sort -u > "$WORK/bfc"
-    brew list --cask 2>/dev/null | sort -u > "$WORK/instc"
+    # A renamed cask leaves its old name behind as a Caskroom *symlink*
+    # (google-cloud-sdk -> gcloud-cli). Those are aliases, not drift.
+    brew list --cask 2>/dev/null | while read -r c; do
+        [ -L "$(brew --prefix)/Caskroom/$c" ] || printf '%s\n' "$c"
+    done | sort -u > "$WORK/instc"
     n="$(comm -13 "$WORK/bfc" "$WORK/instc" | wc -l | tr -d ' ')"
     if [ "$n" = 0 ]; then
         skip "every installed cask is recorded"
@@ -73,28 +77,47 @@ audit_brew() {
 
 audit_uv_tools() {
     log "uv tools"
-    have uv || { warn "uv not found"; return 0; }
+    load_local_bin
+    resolve_uv || { warn "uv not found"; return 0; }
 
     "$REPO_DIR/python-tools.sh" --list | sort -u > "$WORK/want"
-    # Top-level lines of `uv tool list` are "<package> v<version>".
-    uv tool list 2>/dev/null | sed -n 's/^\([^ -][^ ]*\) v.*/\1/p' | sort -u > "$WORK/have_pkgs"
-    uv tool list 2>/dev/null | sed -n 's/^- //p' | sort -u > "$WORK/have_exes"
+
+    # `uv tool list` prints a "<package> v<version>" line per tool, followed
+    # by one "- <executable>" line per executable it provides. Flatten that
+    # into "<package><TAB><executable>" pairs so a package can be matched by
+    # any of its executables -- visidata provides `vd`, black provides
+    # `blackd`, and python-tools.sh records whichever name is typed.
+    "$UV" tool list 2>/dev/null | awk '
+        /^[^ -]/ { pkg = $1; next }
+        /^- /    { if (pkg != "") print pkg "\t" $2 }
+    ' > "$WORK/pairs"
+    cut -f1 "$WORK/pairs" | sort -u > "$WORK/have_pkgs"
+    cut -f2 "$WORK/pairs" | sort -u > "$WORK/have_exes"
 
     local missing=0 extra=0 t
     while read -r t; do
-        grep -qxF "$t" "$WORK/have_exes" || { note "  recorded but not installed: $t"; missing=1; }
+        [ -n "$t" ] || continue
+        grep -qxF "$t" "$WORK/have_exes" \
+            || { note "  recorded but not installed: $t"; missing=1; }
     done < "$WORK/want"
     [ "$missing" = 0 ] && skip "every recorded tool is installed"
-    :
 
-    while read -r t; do
-        # A tool is "extra" when neither its package name nor any executable
-        # it provides appears in python-tools.sh.
-        if ! grep -qxF "$t" "$WORK/want"; then
-            grep -qxF "$t" "$WORK/have_exes" && continue
-            note "  installed but not recorded in python-tools.sh: $t"
-            extra=1
+    # A package is unrecorded only when neither its own name nor ANY of the
+    # executables it provides appears in python-tools.sh. The previous version
+    # compared against the installed executables instead of the recorded ones,
+    # which always matched and so never reported anything.
+    local pkg exe
+    while read -r pkg; do
+        [ -n "$pkg" ] || continue
+        if grep -qxF "$pkg" "$WORK/want"; then
+            continue
         fi
+        if awk -F'\t' -v p="$pkg" '$1 == p { print $2 }' "$WORK/pairs" \
+            | grep -qxF -f "$WORK/want" 2>/dev/null; then
+            continue
+        fi
+        note "  installed but not recorded in python-tools.sh: $pkg"
+        extra=1
     done < "$WORK/have_pkgs"
     [ "$extra" = 0 ] && skip "no unrecorded tools"
     return 0
@@ -123,23 +146,39 @@ audit_symlinks() {
 
 audit_versions() {
     log "Runtime versions"
-    if load_pyenv; then
-        local cur want
-        cur="$(pyenv global 2>/dev/null || true)"
+    load_local_bin
+
+    if resolve_uv; then
+        local want cur
         if [ -f "$REPO_DIR/.python-version" ]; then
             want="$(tr -d '[:space:]' < "$REPO_DIR/.python-version")"
         else
-            want="$(pyenv install --list 2>/dev/null | tr -d '[:blank:]' \
-                | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' \
-                | sort -t. -k1,1n -k2,2n -k3,3n | tail -1)"
+            want="$(latest_stable_python || true)"
         fi
-        if [ "$cur" = "$want" ]; then
-            skip "Python $cur (current)"
+        cur="$("$HOME/.local/bin/python3" -V 2>/dev/null | awk '{print $2}' || true)"
+        if [ -z "$cur" ]; then
+            note "  no uv-managed python3 in ~/.local/bin; run install.sh"
+        elif python_default_matches "$want"; then
+            skip "Python $cur (matches $want)"
         else
-            note "  pyenv global is $cur, but $want is available; run install.sh"
+            note "  default python3 is $cur, but $want is available; run install.sh"
         fi
+
+        if [ -x "$DEV_VENV/bin/python" ]; then
+            skip "scratch venv present at $DEV_VENV"
+        else
+            note "  scratch venv missing at $DEV_VENV; run install.sh"
+        fi
+
+        # pyenv and asdf were replaced by uv; flag leftovers so they can go.
+        local leftover
+        for leftover in pyenv asdf; do
+            if have "$leftover"; then
+                note "  $leftover is still installed but no longer used; see README"
+            fi
+        done
     else
-        warn "pyenv not found"
+        warn "uv not found"
     fi
 
     if load_nvm; then

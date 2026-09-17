@@ -54,22 +54,28 @@ done
 # tested for; it is not always the package name (visidata provides "vd").
 # Extra uv arguments are allowed, e.g. "--with" for plugins the tool needs.
 TOOLS='
-black       black
 harlequin   harlequin
 posting     posting
-ruff        ruff
 vd          visidata
 
-# Editor- and CI-invoked linters. .vimrc wires ALE to flake8 and pylint, so
-# both have to exist as commands on PATH, not as importable libraries.
-flake8      flake8
-pylint      pylint
+# Editor tooling. .vimrc drives ALE from these two: ruff for diagnostics and
+# formatting, pylsp for the LSP features (completion, go-to-definition,
+# hover, references, rename). Together they replace flake8, pylint, autopep8,
+# isort, pycodestyle, pyflakes, pydocstyle, pylama and black.
+ruff        ruff
+pylsp       python-lsp-server
+
+# Standalone checkers, run by hand rather than by the editor.
 mypy        mypy
 bandit      bandit
 
 # Project tooling, deliberately kept outside any single project environment.
 pre-commit  pre-commit
 poetry      poetry
+
+# The Astral type checker (same authors as ruff and uv), a possible future
+# replacement for mypy here. Still early; uncomment to try it.
+#ty         ty
 '
 
 install_tool() {
@@ -84,9 +90,9 @@ install_tool() {
     fi
 
     if forced; then
-        run uv tool install --force "$@"
+        run "$UV" tool install --force "$@"
     else
-        run uv tool install "$@"
+        run "$UV" tool install "$@"
     fi
 }
 
@@ -106,12 +112,18 @@ main() {
         return 0
     fi
 
-    have uv || die "uv not found; run install.sh (uv comes from the Brewfile)"
+    # $UV may be passed in by install.sh; otherwise resolve it here. Prefers
+    # Homebrew's uv over a stale standalone copy in ~/.local/bin.
+    if [ -z "${UV:-}" ]; then
+        load_brew_env || true
+        resolve_uv || die "uv not found; run install.sh (uv comes from the Brewfile)"
+    fi
+    load_local_bin
 
     # Cache the installed executables once rather than shelling out per tool.
     # uv tool list prints a "name vX.Y" line per tool followed by "- <exe>"
     # lines for each executable it provides.
-    UV_TOOLS="$(uv tool list 2>/dev/null | sed -n 's/^- //p' || true)"
+    UV_TOOLS="$("$UV" tool list 2>/dev/null | sed -n 's/^- //p' || true)"
 
     log "Python tools (uv tool)"
     while read -r cmd args; do

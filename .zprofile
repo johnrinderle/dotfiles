@@ -12,10 +12,16 @@ for _brew in /opt/homebrew/bin/brew /usr/local/bin/brew; do
 done
 unset _brew
 
-# Python
-export PYENV_ROOT="$HOME/.pyenv"
-command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-command -v pyenv >/dev/null && eval "$(pyenv init -)"
+# uv installs both tool shims and the default `python`/`python3` into
+# ~/.local/bin, so this needs to come before Homebrew's Python.
+export PATH="$HOME/.local/bin:$PATH"
+
+# The scratch environment built from requirements.txt. Not on PATH, so it
+# cannot shadow the default python; reach it deliberately.
+export DEV_VENV="$HOME/.venvs/dev"
+alias dev='source "$DEV_VENV/bin/activate"'
+alias ipy='"$DEV_VENV/bin/ipython"'
+alias devpy='"$DEV_VENV/bin/python"'
 
 # Node
 export NVM_DIR="$HOME/.nvm"

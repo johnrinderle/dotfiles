@@ -25,6 +25,7 @@ anything missing — including symlinks.
 | `update.sh` | Upgrade what is already installed. |
 | `audit.sh` | Read-only. Report drift between this repo and the machine. |
 | `python-tools.sh` | The list of Python CLI applications; run by the other two. |
+| `lib/common.sh` | Shared helpers. Sourced, not run. |
 
 ### install.sh
 
@@ -46,18 +47,26 @@ Without `--force`, a file in `$HOME` that is not the expected symlink is left
 alone and reported, so a hand-edited file is never silently destroyed. Missing
 and broken symlinks are always repaired, since doing so discards nothing.
 
-### Version pinning
+### Runtimes
 
-By default `install.sh` tracks the latest stable CPython and the current Node
-LTS. To pin instead, commit either file:
+Python is managed by **uv**, Node by **nvm**. pyenv and asdf are no longer
+used — see [docs/python-packages.md](docs/python-packages.md) for the uv
+commands and for how to remove the leftovers.
+
+By default `install.sh` tracks the latest stable CPython series and the
+current Node LTS. To pin instead, commit either file:
 
 | File | Effect |
 | --- | --- |
-| `.python-version` | Use this Python instead of latest stable. |
+| `.python-version` | Use this Python instead of the latest stable series. Also honoured by uv inside any project. |
 | `.nvmrc` | Use this Node instead of current LTS. |
 
-`update.sh` deliberately does **not** change these. It updates packages within
-the selected runtimes; moving to a new Python or Node is `install.sh`'s job.
+`update.sh` deliberately does **not** move these. It updates packages and
+patch releases within the selected runtimes; changing to a new Python or Node
+series is `install.sh`'s job.
+
+Per-project Python versions need nothing from this repo: drop a
+`.python-version` in the project and uv downloads that version on demand.
 
 ## What gets installed
 
@@ -65,18 +74,35 @@ the selected runtimes; moving to a new Python or Node is `install.sh`'s job.
 | --- | --- | --- |
 | `Brewfile` | Formulae and casks | `brew bundle` |
 | `python-tools.sh` | Python CLI applications, each isolated | `uv tool install` |
-| `requirements.txt` | Python libraries to `import` | `uv pip install` |
+| `requirements.txt` | Baseline Python libraries, into `~/.venvs/dev` | `uv pip install` |
 | `.vimrc` | vim plugins | vim-plug |
 
 Applications belong in the `Brewfile` or `python-tools.sh`. `requirements.txt`
-is only for libraries you `import`. See
-[docs/python-packages.md](docs/python-packages.md) for the reasoning and a
-review of the current library set.
+is only for libraries you `import`, and only for baseline ones — a project
+gets its own venv. See [docs/python-packages.md](docs/python-packages.md).
+
+The scratch environment is not on `PATH`, so it cannot shadow the default
+`python3`. Reach it deliberately:
+
+```bash
+dev      # activate ~/.venvs/dev
+ipy      # IPython inside it
+devpy    # its python, without activating
+```
+
+### Editor
+
+`vim` and `nvim` share one configuration: `nvim-init.vim` is symlinked to
+`~/.config/nvim/init.vim` and sources `~/.vimrc`. Python support is ruff (all
+diagnostics and formatting) plus pylsp (completion, go-to-definition, hover,
+references, rename), both driven by ALE.
 
 ### Files symlinked into `$HOME`
 
-`.bash_profile`, `.vimrc`, `.zprofile`, `Brewfile`, `requirements.txt`,
-`python-tools.sh`, `update.sh`.
+`.vimrc`, `.zprofile`, `Brewfile`, `requirements.txt`, `python-tools.sh`,
+`update.sh`, and `nvim-init.vim` → `~/.config/nvim/init.vim`.
+
+The shell is zsh; there is no bash profile.
 
 The list lives in `$SYMLINKS` in `lib/common.sh`, shared by `install.sh` and
 `audit.sh`.
@@ -93,6 +119,39 @@ not installed. It exits non-zero when it finds drift, so it works from cron.
 ```bash
 ./audit.sh
 ```
+
+### Pending cleanup
+
+Dropping something from a manifest never uninstalls it, so these are left for
+you to run. `audit.sh` keeps reporting them until they are gone.
+
+Replaced by uv, and no longer referenced anywhere:
+
+```bash
+brew uninstall pyenv asdf && rm -rf ~/.pyenv ~/.asdf
+```
+
+Not wanted (`bash-completion` because the shell is zsh):
+
+```bash
+brew uninstall pandoc htop typst bash-completion
+```
+
+Superseded Python tools — `ruff format` replaces black:
+
+```bash
+uv tool uninstall black
+```
+
+Judgement calls, not done:
+
+| Package | Question |
+| --- | --- |
+| `mysql`, `mysql-client` | Only `mysql-client@8.0` is on `PATH`. Drop the other two unless you run a local MySQL server. |
+| `sentry` | Duplicates `sentry-cli`, which is in the Brewfile. |
+| `python@3.11`, `python@3.12` | Homebrew Pythons, now redundant with uv. Check `brew uses --installed` first. |
+| `docutils` | reStructuredText tooling; likely installed alongside pandoc. |
+| `sslyze` | Installed as a uv tool but unrecorded, and overlaps `sslscan`. Add it to `python-tools.sh` or remove it. |
 
 To fold everything currently installed into the Brewfile:
 

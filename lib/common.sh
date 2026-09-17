@@ -73,13 +73,13 @@ dry_run() { [ "$DRY_RUN" = 1 ]; }
 # The files this repo owns in $HOME, one "<repo path> <name in $HOME>" per
 # line. Shared by install.sh (creates them) and audit.sh (verifies them).
 SYMLINKS='
-.bash_profile    .bash_profile
 .vimrc           .vimrc
 .zprofile        .zprofile
 Brewfile         Brewfile
 requirements.txt requirements.txt
 python-tools.sh  python-tools.sh
 update.sh        update.sh
+nvim-init.vim    .config/nvim/init.vim
 '
 
 # link_file SRC DEST -- make DEST an absolute symlink to SRC.
@@ -127,6 +127,14 @@ link_file() {
         backup="$dest.backup-$(date +%Y%m%d%H%M%S)"
         info "backing up $dest -> $backup"
         run mv "$dest" "$backup"
+    fi
+
+    # Nested targets (e.g. ~/.config/nvim/init.vim) need their parent first.
+    local parent
+    parent="$(dirname "$dest")"
+    if [ ! -d "$parent" ]; then
+        info "creating $parent"
+        run mkdir -p "$parent"
     fi
 
     dry_run || info "linking $dest -> $src"
@@ -199,14 +207,73 @@ load_nvm() {
     return $rc
 }
 
-# load_pyenv -- put pyenv's root/shims on PATH for this shell.
-load_pyenv() {
-    have pyenv || return 1
-    PYENV_ROOT="${PYENV_ROOT:-$HOME/.pyenv}"
-    export PYENV_ROOT
+# --------------------------------------------------------------- python ----
+#
+# Python is managed entirely by uv: `uv python install --default` puts
+# python/python3 in ~/.local/bin, and uv auto-downloads a project's requested
+# version on demand. pyenv and asdf are no longer used.
+
+# UV -- the uv binary to use. Prefers Homebrew's, because a stale copy left
+# in ~/.local/bin by uv's standalone installer sits earlier on PATH and would
+# otherwise shadow it. (Tool shims in ~/.local/bin are uv's own doing and are
+# fine; only the uv binary itself is a problem.) Sets $UV, returns 1 if none.
+UV=""
+resolve_uv() {
+    local candidate
+    if have brew; then
+        candidate="$(brew --prefix 2>/dev/null)/bin/uv"
+        if [ -x "$candidate" ]; then
+            UV="$candidate"
+            return 0
+        fi
+    fi
+    if have uv; then
+        UV="$(command -v uv)"
+        return 0
+    fi
+    UV=""
+    return 1
+}
+
+# uv links tool shims and the default python into ~/.local/bin. Make sure it
+# is on PATH for the rest of the script, since .zprofile may not have run.
+load_local_bin() {
     case ":$PATH:" in
-        *":$PYENV_ROOT/shims:"*) ;;
-        *) PATH="$PYENV_ROOT/shims:$PATH"; export PATH ;;
+        *":$HOME/.local/bin:"*) ;;
+        *) PATH="$HOME/.local/bin:$PATH"; export PATH ;;
     esac
-    return 0
+}
+
+# The scratch environment built from requirements.txt. A dedicated venv
+# because uv refuses to install into a non-virtual environment without
+# --system, and its managed interpreters are not meant to be modified.
+DEV_VENV="${DEV_VENV:-$HOME/.venvs/dev}"
+
+# latest_stable_python -- newest stable CPython *series* uv can install, e.g.
+# "3.14". The patch level is deliberately left to uv: `uv python install 3.14`
+# takes the newest patch and `uv python upgrade` moves it forward later.
+#
+# Restricted to --only-downloads so we never name a version uv cannot install
+# (a bare `uv python list` also reports system interpreters such as Homebrew's
+# python@3.14). Requiring "-" straight after the patch number excludes
+# pre-releases (3.15.0a1-...) and free-threaded builds (3.14.0+freethreaded-).
+latest_stable_python() {
+    "$UV" python list --all-versions --only-downloads 2>/dev/null \
+        | sed -n 's/^cpython-\([0-9]*\)\.\([0-9]*\)\.[0-9]*-.*/\1.\2/p' \
+        | sort -t. -k1,1n -k2,2n -u \
+        | tail -1
+}
+
+# python_default_matches VERSION -- does the default python3 shim already
+# satisfy VERSION? Checks the outcome we actually want rather than uv's
+# bookkeeping, so a system Python of the same version cannot be mistaken for
+# a uv-managed one.
+python_default_matches() {
+    local want="$1" got
+    got="$("$HOME/.local/bin/python3" -c \
+        'import platform; print(platform.python_version())' 2>/dev/null)" || return 1
+    case "$got" in
+        "$want"|"$want".*) return 0 ;;
+    esac
+    return 1
 }

@@ -55,20 +55,24 @@ Usage: install.sh [options]
 
   -n, --dry-run        Report what would change; change nothing.
   -f, --force          Refresh steps that are already satisfied: upgrade brew
-                       packages, reinstall uv tools and Python libraries, and
-                       replace conflicting files in \$HOME (backing them up
-                       first). Also rebuilds the pinned Python from source,
-                       which clears that version's site-packages -- the
-                       libraries are reinstalled immediately afterwards.
-                       Nothing is ever uninstalled.
+                       packages, re-download the pinned Python, recreate the
+                       scratch venv, reinstall uv tools and Python libraries,
+                       and replace conflicting files in \$HOME (backing them
+                       up first). Nothing is ever uninstalled.
       --only STEPS     Comma-separated subset of steps to run.
   -h, --help           Show this help.
 
 Steps: $ALL_STEPS
 
 Version pinning:
-  .python-version      If present, use this Python instead of latest stable.
+  .python-version      If present, use this Python instead of the latest
+                       stable series. Also honoured by uv in any project.
   .nvmrc               If present, use this Node instead of current LTS.
+
+Python is managed by uv: it installs python/python3 into ~/.local/bin, and
+requirements.txt goes into a separate venv at ~/.venvs/dev (aliases: dev,
+ipy, devpy). Per-project versions come from each project's own
+.python-version, which uv downloads on demand.
 USAGE
 }
 
@@ -228,78 +232,68 @@ step_node() {
 }
 
 # ----------------------------------------------------------------- python ----
+#
+# Python is managed by uv. latest_stable_python() and python_default_matches()
+# live in lib/common.sh so audit.sh can reuse them.
 
-# Latest stable CPython that pyenv can build. Exactly-three-component versions
-# only, which filters out pre-releases (3.15.0a1), free-threaded builds
-# (3.14.0t) and the non-CPython distributions (pypy, anaconda, graalpy).
-latest_stable_python() {
-    pyenv install --list 2>/dev/null \
-        | tr -d '[:blank:]' \
-        | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' \
-        | sort -t. -k1,1n -k2,2n -k3,3n \
-        | tail -1
-}
-
-# Set by step_python, consumed by step_pydeps.
+# Set by step_python, reused by step_pydeps.
 PY_VERSION=""
 
 resolve_py_version() {
+    if [ -n "$PY_VERSION" ]; then
+        return 0
+    fi
     if [ -f "$REPO_DIR/.python-version" ]; then
         PY_VERSION="$(tr -d '[:space:]' < "$REPO_DIR/.python-version")"
-        info "target $PY_VERSION (pinned by .python-version)"
-    else
-        PY_VERSION="$(latest_stable_python)"
-        [ -n "$PY_VERSION" ] || die "could not determine the latest stable Python from 'pyenv install --list'"
-        info "target $PY_VERSION (latest stable)"
+        info "target Python $PY_VERSION (pinned by .python-version)"
+        return 0
     fi
+    PY_VERSION="$(latest_stable_python)"
+    if [ -z "$PY_VERSION" ]; then
+        warn "could not determine the latest stable Python from 'uv python list'"
+        return 1
+    fi
+    info "target Python $PY_VERSION (latest stable series; uv picks the patch)"
 }
 
 step_python() {
-    log "Python (pyenv)"
-    load_brew_env || true   # pyenv comes from Homebrew
-    if ! load_pyenv; then
-        if dry_run; then
-            dry "pyenv install <latest stable>  &&  pyenv global <latest stable>"
-            return 0
-        fi
-        warn "pyenv not found (it comes from the Brewfile); skipping"
-        return 0
-    fi
+    log "Python (uv)"
+    load_brew_env || true
+    load_local_bin
+    check_uv || return 0
+    resolve_py_version || return 0
 
-    resolve_py_version
-
-    if pyenv versions --bare 2>/dev/null | grep -qxF "$PY_VERSION" && ! forced; then
-        skip "Python $PY_VERSION already built"
+    if python_default_matches "$PY_VERSION" && ! forced; then
+        skip "python3 is already $("$HOME/.local/bin/python3" -V 2>&1 | awk '{print $2}')"
     else
-        info "building Python $PY_VERSION (this takes a few minutes)"
+        info "installing Python $PY_VERSION as the default"
+        # --default creates python/python3 in ~/.local/bin; --force lets it
+        # replace shims left by an earlier version. --reinstall (only under
+        # our --force) re-downloads the interpreter itself.
         if forced; then
-            # --force rebuilds from source and discards this version's
-            # site-packages; the pydeps step reinstalls them afterwards.
-            info "--force: rebuilding, which clears its installed packages"
-            run pyenv install --force "$PY_VERSION"
+            run "$UV" python install "$PY_VERSION" --default --force --reinstall
         else
-            run pyenv install --skip-existing "$PY_VERSION"
+            run "$UV" python install "$PY_VERSION" --default --force
         fi
     fi
 
-    local current
-    current="$(pyenv global 2>/dev/null || true)"
-    if [ "$current" = "$PY_VERSION" ] && ! forced; then
-        skip "pyenv global already $PY_VERSION"
+    # Make uv's own resolution agree with the shim for any directory that has
+    # no .python-version of its own.
+    if dry_run; then
+        dry "$UV python pin --global $PY_VERSION"
     else
-        info "setting pyenv global to $PY_VERSION (was ${current:-unset})"
-        run pyenv global "$PY_VERSION"
+        "$UV" python pin --global "$PY_VERSION" >/dev/null 2>&1 \
+            || warn "could not set the global uv Python pin (needs a newer uv)"
     fi
 }
 
 # ------------------------------------------------- python libraries (uv) ----
 
-# uv must be the Homebrew-managed one. A stray copy from the standalone
-# installer in ~/.local/bin shadows it and goes stale silently.
+# $UV is resolved by resolve_uv() in lib/common.sh, which prefers Homebrew's
+# uv over a stale standalone copy in ~/.local/bin that would shadow it.
 UV_CHECKED=0
 check_uv() {
-    if ! have uv; then
-        # Only warn once even though two steps depend on uv.
+    if ! resolve_uv; then
         [ "$UV_CHECKED" = 1 ] && return 1
         UV_CHECKED=1
         warn "uv not found (it comes from the Brewfile); skipping"
@@ -307,9 +301,9 @@ check_uv() {
     fi
     if [ "$UV_CHECKED" = 0 ]; then
         UV_CHECKED=1
-        case "$(command -v uv)" in
+        case "$UV" in
             "$HOME"/.local/bin/uv)
-                warn "uv resolves to ~/.local/bin/uv, not Homebrew's; that copy is unmanaged and will drift. Remove it with: rm -f ~/.local/bin/uv ~/.local/bin/uvx"
+                warn "using $HOME/.local/bin/uv; Homebrew's copy is not installed yet. That standalone copy is unmanaged and goes stale -- after the brew step, remove it with: rm -f ~/.local/bin/uv ~/.local/bin/uvx"
                 ;;
         esac
     fi
@@ -318,38 +312,35 @@ check_uv() {
 
 step_pydeps() {
     log "Python libraries (requirements.txt)"
-    load_brew_env || true   # uv comes from Homebrew
+    load_brew_env || true
+    load_local_bin
     check_uv || return 0
+    resolve_py_version || return 0
 
-    # BUG: resolve_py_version dies when it cannot read 'pyenv install --list'.
-    # Without pyenv there is no interpreter to target, so skip cleanly instead.
-    if ! load_pyenv; then
-        warn "pyenv not found; cannot choose an interpreter for requirements.txt"
-        return 0
-    fi
-    [ -n "$PY_VERSION" ] || resolve_py_version
-
-    # Install into the interpreter this script pins, named explicitly. The old
-    # 'uv pip install --system' resolved to whatever pyenv global happened to
-    # be, which silently targeted the wrong Python.
-    local prefix py=""
-    prefix="$(pyenv prefix "$PY_VERSION" 2>/dev/null || true)"
-    [ -n "$prefix" ] && py="$prefix/bin/python"
-    if [ -z "$py" ] || [ ! -x "$py" ]; then
-        if dry_run; then
-            dry "uv pip install --python <pyenv $PY_VERSION> -r requirements.txt"
-            return 0
-        fi
-        warn "Python $PY_VERSION is not installed; skipping (run the 'python' step first)"
-        return 0
-    fi
-
-    info "target interpreter: $py"
-    if forced; then
-        run uv pip install --python "$py" --upgrade --reinstall -r "$REPO_DIR/requirements.txt"
+    # A dedicated venv, not the interpreter itself: uv ignores non-virtual
+    # environments unless given --system, and its managed Python installs are
+    # not meant to be written into. $DEV_VENV is exported by .zprofile too,
+    # where aliases (dev, ipy, devpy) make it reachable.
+    if [ -x "$DEV_VENV/bin/python" ] && ! forced; then
+        skip "$DEV_VENV already exists"
     else
-        # uv is a no-op when the requirements are already satisfied.
-        run uv pip install --python "$py" -r "$REPO_DIR/requirements.txt"
+        info "creating venv $DEV_VENV (Python $PY_VERSION)"
+        run "$UV" venv --python "$PY_VERSION" "$DEV_VENV"
+    fi
+
+    if [ ! -x "$DEV_VENV/bin/python" ] && ! dry_run; then
+        warn "$DEV_VENV was not created; skipping requirements.txt"
+        return 0
+    fi
+
+    info "installing requirements.txt into $DEV_VENV"
+    if forced; then
+        run "$UV" pip install --python "$DEV_VENV/bin/python" \
+            --upgrade --reinstall -r "$REPO_DIR/requirements.txt"
+    else
+        # A no-op when the requirements are already satisfied.
+        run "$UV" pip install --python "$DEV_VENV/bin/python" \
+            -r "$REPO_DIR/requirements.txt"
     fi
 }
 
@@ -357,11 +348,12 @@ step_pydeps() {
 
 step_pytools() {
     log "Python tools (python-tools.sh)"
-    load_brew_env || true   # uv comes from Homebrew
+    load_brew_env || true
+    load_local_bin
     check_uv || return 0
     # Called directly, not through run(): python-tools.sh honours DRY_RUN
     # itself and prints per-tool detail that run() would hide.
-    DRY_RUN="$DRY_RUN" FORCE="$FORCE" "$REPO_DIR/python-tools.sh" \
+    DRY_RUN="$DRY_RUN" FORCE="$FORCE" UV="$UV" "$REPO_DIR/python-tools.sh" \
         || warn "python-tools.sh exited non-zero"
 }
 

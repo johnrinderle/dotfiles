@@ -69,30 +69,30 @@ update_brew() {
 
 update_python() {
     log "Python"
-    have uv || { warn "uv not found; run install.sh"; return 0; }
-    load_pyenv || { warn "pyenv not found; skipping Python libraries"; return 0; }
-
-    # Update the interpreter currently selected, rather than re-resolving
-    # "latest stable": bumping the Python version is install.sh's job.
-    local version prefix py
-    version="$(pyenv global 2>/dev/null || true)"
-    if [ -z "$version" ] || [ "$version" = "system" ]; then
-        warn "pyenv global is '${version:-unset}'; run install.sh to pin a version"
+    load_brew_env || true
+    load_local_bin
+    if ! resolve_uv; then
+        warn "uv not found; run install.sh"
         return 0
     fi
-    prefix="$(pyenv prefix "$version" 2>/dev/null || true)"
-    py="${prefix:+$prefix/bin/python}"
-    if [ -z "$py" ] || [ ! -x "$py" ]; then
-        warn "no usable interpreter for pyenv version $version; skipping libraries"
+
+    # Move the default Python to its latest patch release. Changing the minor
+    # series is install.sh's job, not an update.
+    run "$UV" python upgrade
+
+    # Refresh the scratch environment built from requirements.txt.
+    if [ -x "$DEV_VENV/bin/python" ]; then
+        info "upgrading requirements.txt in $DEV_VENV"
+        run "$UV" pip install --python "$DEV_VENV/bin/python" \
+            --upgrade -r "$REPO_DIR/requirements.txt"
     else
-        info "upgrading requirements.txt in $py"
-        run uv pip install --python "$py" --upgrade -r "$REPO_DIR/requirements.txt"
+        warn "$DEV_VENV does not exist; run install.sh"
     fi
 
     log "Python tools"
-    run uv tool upgrade --all
+    run "$UV" tool upgrade --all
     # Install tools added to python-tools.sh since the last run.
-    DRY_RUN="$DRY_RUN" "$REPO_DIR/python-tools.sh" \
+    DRY_RUN="$DRY_RUN" UV="$UV" "$REPO_DIR/python-tools.sh" \
         || warn "python-tools.sh exited non-zero"
 }
 
@@ -123,11 +123,13 @@ update_vim() {
     fi
     have vim || { warn "vim not found; skipping"; return 0; }
     if dry_run; then
-        dry "vim +'PlugUpdate --sync' +qa"
+        dry "vim +'PlugUpdate --sync' +qa  &&  vim +PlugClean! +qa"
         return 0
     fi
-    # PlugUpdate also installs plugins added to .vimrc since the last run.
+    # PlugUpdate installs plugins added to .vimrc; PlugClean! removes ones
+    # taken out of it, which otherwise linger in ~/.vim/plugged forever.
     vim +'PlugUpdate --sync' +qa >/dev/null 2>&1 || warn "vim PlugUpdate reported an error"
+    vim +'PlugClean!' +qa >/dev/null 2>&1 || warn "vim PlugClean reported an error"
 }
 
 # ------------------------------------------------------------------- main ----
