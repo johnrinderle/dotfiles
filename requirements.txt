@@ -1,45 +1,72 @@
-autopep8
-bandit
+# Python libraries for the default interpreter (whatever pyenv global points
+# at). Installed by install.sh and update.sh with:
+#
+#     uv pip install --python "$(pyenv prefix <version>)/bin/python" \
+#         -r requirements.txt
+#
+# This file is for libraries you `import`. Command-line applications belong in
+# python-tools.sh, where uv gives each one an isolated environment so their
+# dependencies cannot conflict. See docs/python-packages.md for the reasoning
+# behind every entry below, including the commented-out ones.
+
+# --- HTTP, scraping, sockets ---
 beautifulsoup4
-flake8
-github3.py
-ipdb
-ipython
-isodate
-isort
 lxml
-mypy
-mysqlclient
-nodeenv
-numpy
-openpyxl
-pastel
-pep8
-pip-review
-pipenv
-poetry
-pre-commit
-prettyconf
-pycodestyle
-pydantic
-pydocstyle
-pyflakes
-pyjwt
-pylama
-pylint
-pymongo
-pynvim
-pyopenssl
-pytest
-python-dateutil
-python-lsp-server
-pyyaml
 requests
-sslyze
-pytz
 types-requests
-unidecode
 websocket-client
 websockets
+
+# --- Data, serialisation, file formats ---
+numpy
+openpyxl
 xlsxwriter
+pyyaml
 xmltodict
+python-dateutil
+isodate
+unidecode
+
+# --- Databases ---
+pymongo
+mysqlclient
+
+# --- Config, validation, crypto ---
+pydantic
+prettyconf
+pyjwt
+pyopenssl
+
+# --- Service APIs ---
+github3.py
+
+# --- Interactive work ---
+# ipython stays here rather than in python-tools.sh on purpose: as an isolated
+# uv tool it could not import anything above, which is the whole point of
+# having a scratch REPL.
+ipython
+ipdb
+pytest
+pynvim
+pastel
+
+# --- Moved to python-tools.sh, installed as isolated uv tools ---
+# bandit, flake8, mypy, poetry, pre-commit, pylint
+# They are commands, not libraries, so nothing needs to import them. .vimrc
+# wires ALE to flake8 and pylint, and uv still puts them on PATH.
+
+# --- Superseded. Commented out, not deleted, so the record survives. ---
+# Nothing here is uninstalled automatically; remove them by hand if you agree.
+#autopep8           # ruff format
+#isort              # ruff, rule set "I"
+#pycodestyle        # ruff; also vendored inside flake8
+#pyflakes           # ruff; also vendored inside flake8
+#pydocstyle         # deprecated upstream; ruff, rule set "D"
+#pylama             # thin wrapper over the four above; ruff covers it
+#pep8               # abandoned 2016, renamed to pycodestyle
+#pytz               # stdlib zoneinfo since Python 3.9
+#nodeenv            # nvm manages Node; this only made sense pre-nvm
+#pip-review         # uv handles upgrades (update.sh does it)
+#pipenv             # superseded by uv for new work
+#sslyze             # a CLI, not a library; Brewfile already has sslscan
+#python-lsp-server  # a CLI; move to python-tools.sh if you still use it

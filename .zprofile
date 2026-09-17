@@ -1,16 +1,21 @@
 # The following lines were added by Docker Desktop to add commands to your PATH.
-export PATH="$PATH:/Users/john/.docker/bin"
+export PATH="$PATH:$HOME/.docker/bin"
 # End of Docker Desktop section.
 
-eval "$(/opt/homebrew/bin/brew shellenv)"
-
-# Prefer homebrew packages
-export PATH="$(brew --prefix)/bin:$PATH"
+# Homebrew. Checks both prefixes so this works on Apple Silicon and Intel,
+# and stays quiet on a machine where Homebrew is not installed yet.
+for _brew in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+    if [ -x "$_brew" ]; then
+        eval "$("$_brew" shellenv)"
+        break
+    fi
+done
+unset _brew
 
 # Python
 export PYENV_ROOT="$HOME/.pyenv"
 command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
+command -v pyenv >/dev/null && eval "$(pyenv init -)"
 
 # Node
 export NVM_DIR="$HOME/.nvm"
@@ -18,7 +23,10 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 # VRSE
-source "/Users/john/src/github.com/vitalsource/vrse/SOURCEME" # Added by VRSE
+# Added by VRSE. Guarded so a machine without the checkout does not error
+# on every new shell.
+VRSE_SOURCEME="$HOME/src/github.com/vitalsource/vrse/SOURCEME"
+[ -f "$VRSE_SOURCEME" ] && source "$VRSE_SOURCEME"
 
 # Interactive operation
 alias cp='cp -i'
