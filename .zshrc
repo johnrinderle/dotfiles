@@ -102,7 +102,9 @@ compdef _git gma=git-merge
 compdef _git gcp=git-commit
 compdef _git gcq=git-commit
 
-# --------------------------------------------------------------- local ----
+# ------------------------------------------------------------ gcloud auth ----
 
-# Not tracked in this repo, so it will be absent on a fresh machine.
+# Checks GCP auth once per interactive shell and offers to re-authenticate.
+# Symlinked in by install.sh; guarded so a partially provisioned machine does
+# not error. Knobs: GCLOUD_AUTH_CHECK, GCLOUD_AUTH_MODE, GCLOUD_AUTH_THROTTLE.
 [ -f "$HOME/gcloud-auth-check.sh" ] && . "$HOME/gcloud-auth-check.sh"
